@@ -4,7 +4,7 @@ import time
 import imutils
 import cv2
 import csv
-from dinoTest import preProcessing
+from dino.preprocessor import preProcessing
 from utils import removeUnwanted
 import glob
 

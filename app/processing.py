@@ -2,11 +2,11 @@ print("Importing libraries... 0% done")
 import os
 import csv
 print("Importing libraries... 25% done")
-from yoloGaz import mainGaz
-from cloudChaleur import mainChaleur
+from vision.azure import mainGaz
+from vision.google_cloud import mainChaleur
 print("Importing libraries... 50% done")
-from cloudElec import mainElec
-from azureHeures import mainHeures
+from vision.google_cloud import mainElec
+from vision.azure import mainHeures
 from utils import *
 print("Importing libraries... 75% done")
 import json

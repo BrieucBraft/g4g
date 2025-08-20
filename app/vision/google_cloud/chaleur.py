@@ -6,9 +6,10 @@ import cv2
 import imutils
 from google.cloud import vision
 import glob
-from dinoTest import preProcessing
-from utils import removeUnwanted, removePrefix
-from azureElec import mainAzure
+from dino.preprocessor import preProcessing
+from utils import removeUnwanted
+from azure.chaleur import mainAzure
+
 
 # Load Google Cloud credentials
 credentials = json.load(open('go4green-435412-6555fb2e2af1.json'))
@@ -19,14 +20,15 @@ client = vision.ImageAnnotatorClient()
 
 digiDots = '0123456789'
 
-def mainElec(image_path, cv_client):
+def mainChaleur(image_path, cv_client):
     # Loop over each file
     allResults = []
 
     roi = False
-    
+
+
     image = cv2.imread(image_path)
-    resized_image = imutils.resize(image, height=1440, inter=cv2.INTER_CUBIC) #height = 1440
+    resized_image = imutils.resize(image, height=750, inter=cv2.INTER_CUBIC)
 
     # Save the cropped image
     temp_images_dir = "temp_images"
@@ -44,12 +46,13 @@ def mainElec(image_path, cv_client):
         with io.open(roi_path, 'rb') as image_file:
             content = image_file.read()
         image = vision.Image(content=content)
-        response = client.text_detection(image=image)
+        image_context = vision.ImageContext(language_hints=['en'])
+        response = client.text_detection(image=image, image_context = image_context)
         texts = response.text_annotations
         hours = extraction(texts, False)
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(e)
         with io.open(temp_image_path, 'rb') as image_file:
             content = image_file.read()
         image = vision.Image(content=content)
@@ -57,7 +60,7 @@ def mainElec(image_path, cv_client):
         texts = response.text_annotations
         hours = extraction(texts, roi)
 
-    if (hours == '0' or all(elem not in digiDots for elem in str(hours))) and roi != False:
+    if (hours == 0 or all(elem not in digiDots for elem in str(hours))) and roi != False:
         with io.open(temp_image_path, 'rb') as image_file:
             content = image_file.read()
         image = vision.Image(content=content)
@@ -95,7 +98,6 @@ def extraction(texts, roi):
                 res_array.append(text.description.replace(" ", ""))
     
     hours = findData(res_array)
-    hours = removePrefix(str(hours))
     return hours
 
 def findData(array):
@@ -125,7 +127,7 @@ def findData(array):
             if elem in digits:
                 conditions[2] = True
             elif elem in dots and not conditions[3]:
-                #conditions[3] = True
+                conditions[3] = True
                 text = text.replace('.', '')
             elif elem not in 'kmwh':
                 conditions[2] = False
@@ -149,7 +151,7 @@ def findData(array):
 
 def toCSV(allResults):
     # Save results to CSV
-    with open("output/elec_values.csv", "w", newline="") as csvfile:
+    with open("output/chaleur_values.csv", "w", newline="") as csvfile:
         fieldnames = ["filename", "counter_value", "counter_value2"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()

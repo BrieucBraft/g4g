@@ -2,7 +2,6 @@ import os
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 import time
 from utils import removeUnwanted
-import os
 
 
 digiDots = '0123456789'

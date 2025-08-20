@@ -8,7 +8,7 @@ import threading
 import time
 import glob
 from PIL import Image, ImageTk
-from mainTer import toGoodColumn
+from processing import toGoodColumn
 from utils import list_dropbox_folders, generate_available_dates, open_csv_file, replace_comma_to_dot_separator, replace_dot_to_comma_separator, move_columns_right, convert_xlsx_to_csv
 from tkinter import messagebox
 import traceback
