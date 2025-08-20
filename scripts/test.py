@@ -25,4 +25,4 @@ def reorganize_unique_id(file_path):
     print(f"Fichier modifié enregistré sous : {output_path}")
 
 # Exécuter la fonction avec le chemin de votre fichier .csv
-reorganize_unique_id("output/outputTemp.csv")
+reorganize_unique_id("data/output/outputTemp.csv")

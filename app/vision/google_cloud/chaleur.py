@@ -151,7 +151,7 @@ def findData(array):
 
 def toCSV(allResults):
     # Save results to CSV
-    with open("output/chaleur_values.csv", "w", newline="") as csvfile:
+    with open("data/output/chaleur_values.csv", "w", newline="") as csvfile:
         fieldnames = ["filename", "counter_value", "counter_value2"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()

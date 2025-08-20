@@ -17,7 +17,7 @@ print("Importing libraries... 100% done")
 
 def toGoodColumn(dropbox_folder, yearMonth, credential_path):
     local_temp_folder = f'all_images/{yearMonth}'  # Temp folder to store downloaded images
-    output_csv = "output/temp/outputTemp.csv"
+    output_csv = "data/output/temp/outputTemp.csv"
     # Create a local temp folder if not exists
     if not os.path.exists(local_temp_folder):
         os.makedirs(local_temp_folder)

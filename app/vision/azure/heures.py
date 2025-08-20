@@ -164,7 +164,7 @@ def toCSV(allResults):
     # If we found any potential hours, add them to the CSV
 
         # Save results to CSV
-    with open("output/heures_values.csv", "w", newline="") as csvfile:
+    with open("data/output/heures_values.csv", "w", newline="") as csvfile:
         fieldnames = ["filename", "counter_value"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()

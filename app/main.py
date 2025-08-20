@@ -51,12 +51,12 @@ yearMonth = '2024-09'
 
 # Modify the restore_from_backup function to include a success message
 def restore_from_backup(yearMonth='2024-09'):
-    output_xlsx = "output/output.xlsx"
-    output_temp = "output/temp/outputTemp.csv"
-    output_csv = "output/temp/output.csv"
+    output_xlsx = "data/output/output.xlsx"
+    output_temp = "data/output/temp/outputTemp.csv"
+    output_csv = "data/output/temp/output.csv"
     
-    backup_files = glob.glob(f"output/{yearMonth}/output_backup_*.xlsx")
-    backup_temps = glob.glob(f"output/{yearMonth}/output_temp.csv")
+    backup_files = glob.glob(f"data/output/{yearMonth}/output_backup_*.xlsx")
+    backup_temps = glob.glob(f"data/output/{yearMonth}/output_temp.csv")
     if backup_files and backup_temps:
         latest_backup = max(backup_files, key=os.path.getctime)
         latest_temp = max(backup_temps, key=os.path.getctime)
@@ -86,9 +86,9 @@ def main():
 
     root = tk.Tk()
 
-    output_xlsx = "output/output.xlsx"
-    output_csv = "output/temp/output.csv"
-    output_temp = "output/temp/outputTemp.csv"
+    output_xlsx = "data/output/output.xlsx"
+    output_csv = "data/output/temp/output.csv"
+    output_temp = "data/output/temp/outputTemp.csv"
     if not os.path.exists(output_xlsx):
         print("Main CSV file missing. Attempting to restore from backup.")
         restore_from_backup()
@@ -107,7 +107,7 @@ def main():
     def on_ok():
         yearMonth = date_var.get()  # Get the selected date from the dropdown
 
-        newpath = f'output/{yearMonth}' 
+        newpath = f'data/output/{yearMonth}' 
         if not os.path.exists(newpath):
             os.makedirs(newpath)
 
@@ -119,8 +119,8 @@ def main():
         # Backup the existing CSV file
         if os.path.exists(output_xlsx):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_xlsx = f"output/{yearMonth}/output_backup_{timestamp}.xlsx"
-            backup_temp = f"output/{yearMonth}/output_temp.csv"
+            backup_xlsx = f"data/output/{yearMonth}/output_backup_{timestamp}.xlsx"
+            backup_temp = f"data/output/{yearMonth}/output_temp.csv"
             convert_xlsx_to_csv(output_xlsx, output_csv)
             shutil.copy(output_xlsx, backup_xlsx)
             shutil.copy(output_csv, output_temp)
@@ -173,13 +173,13 @@ def main():
                         replace_dot_to_comma_separator(output_temp)
 
                         if len(pd.read_csv(output_temp, sep=';', dtype=str, encoding='iso8859_15')) < 10 :
-                            backup_temp = f"output/{yearMonth}/output_temp.csv"
+                            backup_temp = f"data/output/{yearMonth}/output_temp.csv"
                             shutil.copy(backup_temp, output_temp)
 
                         if os.path.exists(output_xlsx):
                             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                            backup_xlsx = f"output/{yearMonth}/output_backup_{timestamp}.xlsx"
-                            backup_temp = f"output/{yearMonth}/output_temp.csv"
+                            backup_xlsx = f"data/output/{yearMonth}/output_backup_{timestamp}.xlsx"
+                            backup_temp = f"data/output/{yearMonth}/output_temp.csv"
                             pd.read_csv(output_temp, sep=';', dtype=str, encoding='iso8859_15').to_excel(backup_xlsx, index = False, engine='openpyxl')
                             shutil.copy(output_temp, backup_temp)
                             print(f"Backup created: {backup_xlsx}")
