@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+.env
+venv/
+dist/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Images and outputs
+all_images/
+temp_images/
+cropped_images/
+output/
+
+# Large ML models
+*.pth
+*.pt
+*.onnx
+*.weights
+
+# Secrets
+credential.json
+credentialBackup.json
+go4green-*.json
