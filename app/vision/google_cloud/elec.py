@@ -6,9 +6,9 @@ import cv2
 import imutils
 from google.cloud import vision
 import glob
-from dino.preprocessor import preProcessing
-from utils import removeUnwanted, removePrefix
-from azure.elec import mainAzure
+from app.vision.dino.preprocessor import preProcessing
+from app.utils import removeUnwanted, removePrefix
+from app.vision.azure.elec import mainAzure
 
 # Load Google Cloud credentials
 credentials = json.load(open('go4green-435412-6555fb2e2af1.json'))

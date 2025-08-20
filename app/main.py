@@ -8,8 +8,12 @@ import threading
 import time
 import glob
 from PIL import Image, ImageTk
-from processing import toGoodColumn
-from utils import list_dropbox_folders, generate_available_dates, open_csv_file, replace_comma_to_dot_separator, replace_dot_to_comma_separator, move_columns_right, convert_xlsx_to_csv
+from app.processing import toGoodColumn
+from app.utils import (
+    list_dropbox_folders, generate_available_dates, open_csv_file, 
+    replace_comma_to_dot_separator, replace_dot_to_comma_separator,
+    move_columns_right, convert_xlsx_to_csv
+)
 from tkinter import messagebox
 import traceback
 import pandas as pd
@@ -247,14 +251,14 @@ def main():
 
 
     # Load the icon image
-    icon_image = Image.open('go4greenfr_logo.ico')
+    icon_image = Image.open('assets/icons/go4greenfr_logo.ico')
     icon_image = icon_image.resize((64, 64))  # Resize to 64x64 pixels
     icon_photo = ImageTk.PhotoImage(icon_image)
     root.iconphoto(True, icon_photo)
 
     big_frame = ttk.Frame(root)
     big_frame.pack(fill='both', anchor='n')
-    root.tk.call('source', 'Forest-ttk-theme-master/forest-light.tcl')
+    root.tk.call('source', 'assets/themes/forest-ttk-theme/forest-light.tcl')
     ttk.Style().theme_use('forest-light')
 
     root.title("Go4Green Software")

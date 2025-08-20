@@ -4,8 +4,8 @@ import time
 import imutils
 import cv2
 import csv
-from dino.preprocessor import preProcessing
-from utils import removeUnwanted
+from app.vision.dino.preprocessor import preProcessing
+from app.utils import removeUnwanted
 import glob
 
 digiDots = '0123456789,.'

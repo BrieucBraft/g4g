@@ -5,7 +5,7 @@ import os
 script_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the current script (yoloGaz.py)
 
 # Load the trained model
-model = YOLO(os.path.join(script_dir, "ObjectDetection/results/Fatv3/last.pt"))
+model = YOLO(os.path.join(script_dir, "ObjectDetection/last.pt"))
 
 
 

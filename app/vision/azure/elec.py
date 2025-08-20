@@ -2,7 +2,7 @@ import os
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 import time
 import csv
-from utils import removeUnwanted, removePrefix
+from app.utils import removeUnwanted, removePrefix
 
 digiDots = '0123456789'
 

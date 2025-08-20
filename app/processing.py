@@ -2,12 +2,12 @@ print("Importing libraries... 0% done")
 import os
 import csv
 print("Importing libraries... 25% done")
-from vision.azure import mainGaz
-from vision.google_cloud import mainChaleur
+from app.vision.yolo.gaz import mainGaz
+from app.vision.google_cloud.chaleur import mainChaleur
 print("Importing libraries... 50% done")
-from vision.google_cloud import mainElec
-from vision.azure import mainHeures
-from utils import *
+from app.vision.google_cloud.elec import mainElec
+from app.vision.azure.heures import mainHeures
+from app.utils import *
 print("Importing libraries... 75% done")
 import json
 from msrest.authentication import CognitiveServicesCredentials

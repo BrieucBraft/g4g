@@ -14,14 +14,13 @@ import pandas as pd
 from openpyxl import load_workbook
 import csv
 import json
+from dotenv import load_dotenv
 
-# DROPBOX_APP_KEY = '283vn1877onacog'
-# DROPBOX_APP_SECRET = '26i5epowvpyx3cf'
-# DROPBOX_REFRESH_TOKEN = 'm5ltvEAia_YAAAAAAAAAAWIAuSN3-gm9H2rkpoznLAiO83vb8DcS3vglX139Oy9R'
+load_dotenv()
 
-DROPBOX_APP_KEY = 'etmsw8cdqn2mb09'
-DROPBOX_APP_SECRET = 'krnx3aztfumieni'
-DROPBOX_REFRESH_TOKEN = 'FE8jcGXbeO8AAAAAAAAAAVeqI3F1xTYzuypUNgg2kWTIC2qrZH61v5NPdEcz7xTK'
+DROPBOX_APP_KEY = os.getenv('DROPBOX_APP_KEY')
+DROPBOX_APP_SECRET = os.getenv('DROPBOX_APP_SECRET')
+DROPBOX_REFRESH_TOKEN = os.getenv('DROPBOX_REFRESH_TOKEN')
 
 def convert_xlsx_to_csv(input_file: str, output_file: str):
     """
@@ -737,7 +736,6 @@ def list_dropbox_folders(dropbox_folder_path, yearMonth):
     try:
         result = dbx.files_list_folder(dropbox_folder_path, recursive=True)
         while True:
-            print(result)
             for entry in result.entries:
                 if isinstance(entry, dropbox.files.FolderMetadata):
                     if folder_pattern.match(entry.path_display):

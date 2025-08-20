@@ -6,9 +6,9 @@ import cv2
 import imutils
 from google.cloud import vision
 import glob
-from dino.preprocessor import preProcessing
-from utils import removeUnwanted
-from azure.chaleur import mainAzure
+from app.vision.dino.preprocessor import preProcessing
+from app.utils import removeUnwanted
+from app.vision.azure.chaleur import mainAzure
 
 
 # Load Google Cloud credentials
