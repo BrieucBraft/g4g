@@ -1,11 +1,9 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 import dropbox
 import requests
-from datetime import timedelta, datetime
 from tkinter import messagebox
 import os
 import re
@@ -14,13 +12,7 @@ import pandas as pd
 from openpyxl import load_workbook
 import csv
 import json
-from dotenv import load_dotenv
-
-from app.config import (
-    DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_REFRESH_TOKEN
-)
-
-load_dotenv()
+from app import config
 
 def convert_xlsx_to_csv(input_file: str, output_file: str):
     try:
@@ -48,14 +40,12 @@ def move_columns_right(file_path):
     index_m1_col = headers['index m-1']
     index_m2_col = headers['index m-2']
     test_passed_col = headers['test passed']
-
     for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row):
         test_passed_value = row[test_passed_col - 1].value
         if test_passed_value is None or test_passed_value == '':
             row[index_m2_col - 1].value = row[index_m1_col - 1].value
             row[index_m1_col - 1].value = row[index_m_col - 1].value
             row[index_m_col - 1].value = ''
-
     workbook.save(file_path)
     print(f"Processing complete. Modified file saved as {file_path}")
 
@@ -390,7 +380,7 @@ def getROI(contours, img, rois, name, edges):
         plt.figure()
         plt.imshow(cv2.hconcat(rois), cmap='gray')
         plt.axis('off')
-        debug_path = "cropped_images/" + name
+        debug_path = os.path.join(config.CROPPED_IMAGES_DIR, name)
         plt.savefig(debug_path)
     except:
         pass
@@ -405,14 +395,9 @@ def toBox(x,y,w,h):
 
 def list_dropbox_images(dropbox_folder_path):
     image_files = []
-    DROPBOX_ACCESS_TOKEN = get_access_token(DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_REFRESH_TOKEN)
-    namespace_header = {
-        ".tag": "namespace_id",
-        "namespace_id": "11228085027"
-    }
-    headers = {
-        "Dropbox-API-Path-Root": json.dumps(namespace_header)
-    }
+    DROPBOX_ACCESS_TOKEN = get_access_token(config.DROPBOX_APP_KEY, config.DROPBOX_APP_SECRET, config.DROPBOX_REFRESH_TOKEN)
+    namespace_header = {".tag": "namespace_id", "namespace_id": config.DROPBOX_NAMESPACE_ID}
+    headers = {"Dropbox-API-Path-Root": json.dumps(namespace_header)}
     dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN, headers=headers)
     try:
         result = dbx.files_list_folder(dropbox_folder_path)
@@ -429,14 +414,9 @@ def list_dropbox_folders(dropbox_folder_path, yearMonth):
     year = yearMonth.split('-')[0]
     month = yearMonth.split('-')[1]
     folder_pattern = re.compile(f'{dropbox_folder_path}' + r'/[A-Z]{3}-[A-Z0-9]{3}/[Pp][Hh][Oo][Tt][Oo][Ss]?/' + f'{year}-{month}' + r'$')
-    DROPBOX_ACCESS_TOKEN = get_access_token(DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_REFRESH_TOKEN)
-    namespace_header = {
-        ".tag": "namespace_id",
-        "namespace_id": "11228085027"
-    }
-    headers = {
-        "Dropbox-API-Path-Root": json.dumps(namespace_header)
-    }
+    DROPBOX_ACCESS_TOKEN = get_access_token(config.DROPBOX_APP_KEY, config.DROPBOX_APP_SECRET, config.DROPBOX_REFRESH_TOKEN)
+    namespace_header = {".tag": "namespace_id", "namespace_id": config.DROPBOX_NAMESPACE_ID}
+    headers = {"Dropbox-API-Path-Root": json.dumps(namespace_header)}
     dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN, headers=headers)
     try:
         result = dbx.files_list_folder(dropbox_folder_path, recursive=True)

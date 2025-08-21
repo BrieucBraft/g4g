@@ -1,36 +1,48 @@
+# app/config.py
+
 import os
+from dotenv import load_dotenv
 
-# Base directory for the application
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv()
 
-# Asset paths
-ASSETS_DIR = os.path.join(BASE_DIR, 'assets')
-ICONS_DIR = os.path.join(ASSETS_DIR, 'icons')
-THEMES_DIR = os.path.join(ASSETS_DIR, 'themes')
-ICON_PATH = os.path.join(ICONS_DIR, 'go4greenfr_logo.ico')
-LOGO_PATH = os.path.join(ICONS_DIR, 'go4greenfr_logo.jpeg')
-THEME_PATH = os.path.join(THEMES_DIR, 'forest-ttk-theme', 'forest-light.tcl')
+# --- Application Information ---
+APP_VERSION = "1.1.0"
 
-# Model paths
-MODELS_DIR = os.path.join(BASE_DIR, 'models')
-YOLO_MODEL_PATH = os.path.join(MODELS_DIR, "last.pt")
-DINO_CONFIG_PATH = os.path.join(BASE_DIR, 'config', 'dino_config.py')
-DINO_MODEL_PATH = os.path.join(MODELS_DIR, "groundingdino_swint_ogc.pth")
-
-
-# Output and data paths
-OUTPUT_DIR = os.path.join(BASE_DIR, 'output')
-TEMP_DIR = os.path.join(OUTPUT_DIR, 'temp')
-OUTPUT_XLSX = os.path.join(OUTPUT_DIR, 'output.xlsx')
-OUTPUT_CSV = os.path.join(TEMP_DIR, 'output.csv')
-OUTPUT_TEMP_CSV = os.path.join(TEMP_DIR, 'outputTemp.csv')
-CROPPED_IMAGES_DIR = "cropped_images"
-TEMP_IMAGES_DIR = "temp_images"
-
-# Remote URLs
+# --- Remote URIs ---
 VERSION_URL = "https://gist.githubusercontent.com/BrieucBraft/3bf9efacf9a3c6529eee4ce083764a8a/raw/version.json"
-RELEASES_URL = "https://github.com/BrieucBraft/g4g/releases"
+DOWNLOAD_URL = "https://github.com/BrieucBraft/g4g/releases"
+SENTRY_DSN = os.getenv("SENTRY_DSN", None) # Put your Sentry DSN in the .env file
 
-# Application settings
-APP_VERSION = "1.0.0"
+# --- Dropbox API Credentials ---
+DROPBOX_APP_KEY = os.getenv('DROPBOX_APP_KEY')
+DROPBOX_APP_SECRET = os.getenv('DROPBOX_APP_SECRET')
+DROPBOX_REFRESH_TOKEN = os.getenv('DROPBOX_REFRESH_TOKEN')
+DROPBOX_NAMESPACE_ID = "11228085027"
+
+# --- Base Directories ---
+# Assumes the script is run from the root of the project
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DROPBOX_BASE_DIR = '/8. Installations operationnelles/3. Maintenance par projet'
+
+# --- Local Directories ---
+OUTPUT_DIR = os.path.join(BASE_DIR, "data", "output")
+TEMP_DIR = os.path.join(OUTPUT_DIR, "temp")
+TEMP_IMAGES_DIR = os.path.join(BASE_DIR, "temp_images")
+CROPPED_IMAGES_DIR = os.path.join(BASE_DIR, "cropped_images")
+ANNOTATED_TESTS_DIR = os.path.join(BASE_DIR, "tests")
+
+# --- Model Paths ---
+YOLO_MODEL_PATH = os.path.join(BASE_DIR, "models", "last.pt")
+DINO_CONFIG_PATH = os.path.join(BASE_DIR, "config", "dino_config.py")
+DINO_MODEL_PATH = os.path.join(BASE_DIR, "models", "groundingdino_swint_ogc.pth")
+
+# --- File Names ---
+OUTPUT_XLSX = os.path.join(OUTPUT_DIR, "output.xlsx")
+OUTPUT_CSV = os.path.join(TEMP_DIR, "output.csv")
+OUTPUT_TEMP_CSV = os.path.join(TEMP_DIR, "outputTemp.csv")
+LOCK_FILE = os.path.join(BASE_DIR, 'app.lock')
+
+# --- Vision API Settings ---
+TEXT_PROMPT = "digital screen display . electronic device"
+BOX_THRESHOLD = 0.2
+TEXT_THRESHOLD = 0.15
