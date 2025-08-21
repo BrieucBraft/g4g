@@ -13,7 +13,7 @@ def preProcessing(image_path, height = False, alpha = 1, beta = 0):
 
     # Specify that you want to use the CPU
     #model = load_model("C:/Users/brieu/AppData/Local/Programs/Python/Python39/Lib/site-packages/groundingdino/config/GroundingDINO_SwinT_OGC.py", "groundingdino_swint_ogc.pth", device='cpu')
-    model = load_model("GroundingDINO_SwinT_OGC.py", "groundingdino_swint_ogc.pth", device='cpu')
+    model = load_model("dino_config.py", "groundingdino_swint_ogc.pth", device='cpu')
     IMAGE_PATH = image_path
     #TEXT_PROMPT = "digital screen display . electronic device"
     #TEXT_PROMPT = "white counter value on black background . electronic device"
