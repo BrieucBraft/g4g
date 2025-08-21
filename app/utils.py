@@ -421,7 +421,6 @@ def list_dropbox_folders(dropbox_folder_path, yearMonth):
     try:
         result = dbx.files_list_folder(dropbox_folder_path, recursive=True)
         while True:
-            print(result)
             for entry in result.entries:
                 if isinstance(entry, dropbox.files.FolderMetadata):
                     if folder_pattern.match(entry.path_display):

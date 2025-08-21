@@ -13,15 +13,16 @@ import sys
 import requests
 import webbrowser
 import sentry_sdk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from app.processing import toGoodColumn
 from app.utils import (
-    list_dropbox_folders, 
-    generate_available_dates, 
-    open_csv_file, 
-    replace_comma_to_dot_separator, 
-    replace_dot_to_comma_separator, 
-    move_columns_right, 
+    list_dropbox_folders,
+    generate_available_dates,
+    open_csv_file,
+    replace_comma_to_dot_separator,
+    replace_dot_to_comma_separator,
+    move_columns_right,
     convert_xlsx_to_csv
 )
 from app import config
@@ -35,6 +36,7 @@ if config.SENTRY_DSN:
 
 def check_for_existing_instance():
     if os.path.exists(config.LOCK_FILE):
+        messagebox.showwarning("Application Already Running", "An instance of the application is already running.")
         sys.exit()
     with open(config.LOCK_FILE, 'w') as f:
         f.write('running')
@@ -82,7 +84,9 @@ def main():
         print("Main CSV file missing. Attempting to restore from backup.")
         restore_from_backup()
 
-    root = tk.Tk()
+    root = TkinterDnD.Tk()
+    root.title("Go4Green Software")
+    root.geometry("650x700")
 
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
@@ -97,13 +101,38 @@ def main():
     root.icon_photo = ImageTk.PhotoImage(icon_image)
     root.iconphoto(True, root.icon_photo)
 
-    big_frame = ttk.Frame(root)
-    big_frame.pack(fill='both', anchor='n')
     root.tk.call('source', theme_path)
-    ttk.Style().theme_use('forest-light')
-    root.title("Go4Green Software")
+    style = ttk.Style(root)
+    style.theme_use('forest-light')
+
+    style.configure("DropZone.TFrame", background="#f0f0f0", relief="sunken", borderwidth=2)
+    style.configure("DropZoneHover.TFrame", background="#e0e0e0", relief="sunken", borderwidth=2)
 
     credentials_path = 'credential.json'
+
+    def drop(event):
+        filepath = event.data.strip('{}')
+        if filepath.lower().endswith('.xlsx'):
+            try:
+                shutil.copy(filepath, config.OUTPUT_XLSX)
+                filename = os.path.basename(filepath)
+                drop_label.config(text=f"✅ Successfully loaded:\n{filename}")
+                status_bar.config(text=f"Success: '{filename}' is ready to be used.")
+                messagebox.showinfo("File Loaded", f"'{filename}' has been set as the new output file.")
+            except Exception as e:
+                messagebox.showerror("File Error", f"Could not copy the file.\nError: {e}")
+                status_bar.config(text=f"Error: Could not copy file.")
+        else:
+            messagebox.showerror("Invalid File Type", "Error: Only .xlsx files are accepted.\nPlease drag and drop a valid Excel file.")
+            status_bar.config(text="Error: Invalid file type. Please use an .xlsx file.")
+        
+        drop_zone.configure(style="DropZone.TFrame")
+
+    def on_drop_enter(event):
+        drop_zone.configure(style="DropZoneHover.TFrame")
+
+    def on_drop_leave(event):
+        drop_zone.configure(style="DropZone.TFrame")
 
     def toggle_credentials():
         nonlocal credentials_path
@@ -113,7 +142,7 @@ def main():
         else:
             credentials_path = 'credential.json'
             toggle_button.config(text="Using Main Credentials")
-        print(f"Selected credentials: {credentials_path}")
+        status_bar.config(text=f"Switched to {toggle_button.cget('text')}")
 
     def on_ok():
         yearMonth = date_var.get()
@@ -131,9 +160,9 @@ def main():
             shutil.copy(config.OUTPUT_XLSX, backup_xlsx)
             shutil.copy(config.OUTPUT_CSV, config.OUTPUT_TEMP_CSV)
             shutil.copy(config.OUTPUT_CSV, backup_temp)
-            print(f"Backup created: {backup_xlsx}")
+            status_bar.config(text=f"Backup created before processing.")
         else:
-            print("The file does not exist. Creating a new file.")
+            status_bar.config(text="Warning: No output file to back up. A new one will be created.")
 
         ok_button.config(state=tk.DISABLED)
         toggle_button.config(state=tk.DISABLED)
@@ -148,9 +177,10 @@ def main():
             try:
                 for i, folder in enumerate(dropbox_folders, 1):
                     if stop_event.is_set():
-                        print("Process interrupted by the user.")
+                        status_bar.config(text="Process interrupted by user.")
                         break
-                    print(folder)
+                    
+                    status_bar.config(text=f"Processing folder {i}/{total_folders}: {os.path.basename(folder)}...")
                     try:
                         replace_comma_to_dot_separator(config.OUTPUT_TEMP_CSV)
                         toGoodColumn(folder, yearMonth, credentials_path)
@@ -164,12 +194,11 @@ def main():
                             backup_temp = os.path.join(newpath, "output_temp.csv")
                             pd.read_csv(config.OUTPUT_TEMP_CSV, sep=';', dtype=str, encoding='iso8859_15').to_excel(backup_xlsx, index=False, engine='openpyxl')
                             shutil.copy(config.OUTPUT_TEMP_CSV, backup_temp)
-                            print(f"Backup created: {backup_xlsx}")
-                        else:
-                            print("The file does not exist. Creating a new file.")
                     except Exception as folder_error:
-                        print(f"An error occurred while processing folder {folder}: {folder_error}")
-                        messagebox.showinfo("Error", f"An error occurred while processing folder {folder}: {folder_error}.\n\nCurrently attempting to restore output file from backup ...")
+                        sentry_sdk.capture_exception(folder_error)
+                        error_message = f"Error in folder {os.path.basename(folder)}. Restoring from backup..."
+                        status_bar.config(text=error_message)
+                        messagebox.showerror("Processing Error", f"An error occurred while processing folder {os.path.basename(folder)}:\n\n{folder_error}\n\nAttempting to restore from the last good backup.")
                         traceback.print_exc()
                         restore_from_backup(yearMonth=yearMonth)
                         time.sleep(5)
@@ -182,70 +211,92 @@ def main():
                     remaining_hours = (remaining_time // 3600)
                     remaining_minutes = (remaining_time - remaining_hours * 3600) // 60
                     remaining_seconds = remaining_time - remaining_hours * 3600 - remaining_minutes * 60
-                    remaining_label.config(text=f"Estimated remaining time: {int(remaining_hours)} hours {int(remaining_minutes)} minutes {int(remaining_seconds)} seconds")
-                    progress_label.config(text=f'Processing Progress: ({i}/{total_folders} folders) ')
+                    remaining_label.config(text=f"Estimated time remaining: {int(remaining_hours)}h {int(remaining_minutes)}m {int(remaining_seconds)}s")
+                    progress_label.config(text=f'Processing Progress: ({i}/{total_folders} folders)')
 
                 if not stop_event.is_set():
                     if os.path.exists(config.OUTPUT_TEMP_CSV):
                         shutil.copy(config.OUTPUT_TEMP_CSV, config.OUTPUT_CSV)
                         pd.read_csv(config.OUTPUT_TEMP_CSV, sep=';', dtype=str, encoding='iso8859_15').to_excel(config.OUTPUT_XLSX, index=False, engine='openpyxl')
-                        print(f"Output created: {config.OUTPUT_XLSX}")
-                    else:
-                        print("The file does not exist. Creating a new file.")
                     move_columns_right(config.OUTPUT_XLSX)
-                    print("Processing complete.")
                     progress_var.set(100)
-                    remaining_label.config(text="Process completed! Press 'Open Excel' to open the resulting file")
+                    remaining_label.config(text="Processing complete!")
+                    status_bar.config(text="Success! You can now open the Excel file.")
                     open_csv_button.config(state=tk.NORMAL)
                     ok_button.config(state=tk.NORMAL)
                     toggle_button.config(state=tk.NORMAL)
             except Exception as e:
-                print(f"An error occurred: {e}")
+                sentry_sdk.capture_exception(e)
+                status_bar.config(text=f"A critical error occurred: {e}")
+                messagebox.showerror("Critical Error", f"A critical error occurred during processing: {e}")
 
         processing_thread = threading.Thread(target=process_folders, daemon=True)
-        remaining_label.config(text=f"Estimated remaining time: calculating...")
+        remaining_label.config(text=f"Estimated time remaining: calculating...")
+        status_bar.config(text="Starting process...")
         processing_thread.start()
 
         def on_closing():
             remove_lock_file()
-            restore_from_backup(yearMonth=yearMonth)
-            stop_event.set()
-            if processing_thread.is_alive():
-                processing_thread.join(timeout=5)
-            root.destroy()
-            sys.exit()
+            if messagebox.askokcancel("Quit", "Do you want to quit? This will stop the current process and restore the last backup."):
+                restore_from_backup(yearMonth=yearMonth)
+                stop_event.set()
+                if processing_thread.is_alive():
+                    processing_thread.join(timeout=5)
+                root.destroy()
+                sys.exit()
         root.protocol("WM_DELETE_WINDOW", on_closing)
 
-    label = ttk.Label(root, text="Select Year and Month:", font=("Helvetica", 16))
-    label.pack(pady=(30, 10), anchor='n')
+    main_frame = ttk.Frame(root, padding="20 20 20 20")
+    main_frame.pack(expand=True, fill="both")
+
+    step1_label = ttk.Label(main_frame, text="Step 1: Select Date", font=("Helvetica", 16, "bold"))
+    step1_label.pack(fill='x', pady=(0, 5))
 
     available_dates = generate_available_dates(months_back=4, months_forward=2)
     date_var = tk.StringVar()
     date_var.set(available_dates[0])
-    dropdown = ttk.Combobox(root, textvariable=date_var, values=available_dates, font=("Helvetica", 14))
-    dropdown.pack(pady=10, anchor='n')
+    dropdown = ttk.Combobox(main_frame, textvariable=date_var, values=available_dates, font=("Helvetica", 14), state="readonly")
+    dropdown.pack(fill='x', pady=10)
 
-    style = ttk.Style()
-    style.configure("TButton", font=("Helvetica", 14), padding=10, relief="flat")
-    ok_button = ttk.Button(root, text="Process all images for the selected month", style='Accent.TButton', command=on_ok)
-    ok_button.pack(pady=(10, 50), anchor='n')
+    step2_label = ttk.Label(main_frame, text="Step 2 (Optional): Load Previous File", font=("Helvetica", 16, "bold"))
+    step2_label.pack(fill='x', pady=(20, 5))
 
-    progress_label = ttk.Label(root, text="Processing Progress:", font=("Helvetica", 16))
-    progress_label.pack(pady=10, anchor='n')
+    drop_zone = ttk.Frame(main_frame, style="DropZone.TFrame", width=400, height=100)
+    drop_zone.pack(fill="x", pady=10)
+    drop_zone.pack_propagate(False)
+    drop_label = ttk.Label(drop_zone, text="📥\nDrag & Drop 'output.xlsx' Here to Load It", font=("Helvetica", 12), justify="center", style="DropZone.TLabel")
+    drop_label.pack(expand=True)
+
+    drop_zone.drop_target_register(DND_FILES)
+    drop_zone.dnd_bind('<<Drop>>', drop)
+    drop_zone.bind("<Enter>", on_drop_enter)
+    drop_zone.bind("<Leave>", on_drop_leave)
+
+    step3_label = ttk.Label(main_frame, text="Step 3: Start Processing", font=("Helvetica", 16, "bold"))
+    step3_label.pack(fill='x', pady=(20, 5))
+    
+    ok_button = ttk.Button(main_frame, text="Process All Images", style='Accent.TButton', command=on_ok)
+    ok_button.pack(fill='x', ipady=5, pady=10)
+
+    progress_label = ttk.Label(main_frame, text="Processing Progress", font=("Helvetica", 12))
+    progress_label.pack(pady=(20, 5), anchor='w')
 
     progress_var = tk.DoubleVar()
-    style.configure("green.Horizontal.TProgressbar", troughcolor='#d9ead3', background='#37d3a8', thickness=30)
-    progress_bar = ttk.Progressbar(root, variable=progress_var, maximum=100, length=500, style="green.Horizontal.TProgressbar")
-    progress_bar.pack(padx=100, pady=10, anchor='n')
+    style.configure("green.Horizontal.TProgressbar", troughcolor='#EAEAEA', background='#217346', thickness=20)
+    progress_bar = ttk.Progressbar(main_frame, variable=progress_var, maximum=100, length=500, style="green.Horizontal.TProgressbar")
+    progress_bar.pack(fill='x', pady=5)
 
-    remaining_label = ttk.Label(root, font=("Helvetica", 14))
-    remaining_label.pack(pady=10, anchor='n')
+    remaining_label = ttk.Label(main_frame, font=("Helvetica", 10))
+    remaining_label.pack(fill='x', pady=5)
 
-    open_csv_button = ttk.Button(root, text="Open Excel", command=lambda: open_csv_file(config.OUTPUT_XLSX))
-    open_csv_button.pack(pady=10, anchor='n')
+    open_csv_button = ttk.Button(main_frame, text="Open Output Excel File", command=lambda: open_csv_file(config.OUTPUT_XLSX))
+    open_csv_button.pack(fill='x', ipady=5, pady=(20,10))
 
-    toggle_button = ttk.Checkbutton(root, text="Using Main Credentials", style='Switch', command=toggle_credentials)
-    toggle_button.pack(pady=(10, 30), anchor='n')
+    toggle_button = ttk.Checkbutton(main_frame, text="Using Main Credentials", style='Switch', command=toggle_credentials)
+    toggle_button.pack(pady=10)
+    
+    status_bar = ttk.Label(root, text="Ready. Select a month and press 'Process All Images'.", relief=tk.SUNKEN, anchor=tk.W, padding=5)
+    status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
     root.protocol("WM_DELETE_WINDOW", menu_closing)
     root.mainloop()
