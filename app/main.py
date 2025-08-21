@@ -18,9 +18,40 @@ from tkinter import messagebox
 import traceback
 import pandas as pd
 import sys
+import sentry_sdk
+import requests
 
 # Path to the lock file (stored in the same directory as the executable)
 lock_file = os.path.join(os.path.dirname(sys.argv[0]), 'app.lock')
+
+sentry_sdk.init(
+    dsn="https://8d14c2444777fb079ff69d9eeb6e1c69@o4509881530580992.ingest.de.sentry.io/4509881532153936",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
+    send_default_pii=True,
+)
+
+APP_VERSION = "1.1.0"  # Your application's current version
+VERSION_URL = "https://gist.githubusercontent.com/BrieucBraft/3bf9efacf9a3c6529eee4ce083764a8a/raw/455f897c5cf06cea1474a6fa19016ce37bb2ed53/version.json"
+
+def check_for_updates():
+    try:
+        response = requests.get(VERSION_URL)
+        response.raise_for_status()  # This will raise an exception for bad status codes (4xx or 5xx)
+        latest_version = response.json().get("version")
+        if latest_version and latest_version > APP_VERSION:
+            if messagebox.askyesno("Update Available", f"A new version ({latest_version}) is available. Would you like to download it?"):
+                import webbrowser
+                # Replace with your actual download link
+                webbrowser.open("https://github.com/BrieucBraft/g4g/releases")
+    except requests.exceptions.RequestException as e:
+        print(f"Could not check for updates (network error): {e}")
+    except ValueError as e: # Catches JSON decoding errors
+        print(f"Could not check for updates (invalid JSON response): {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred during update check: {e}")
 
 def check_for_existing_instance():
     # Check if the lock file already exists
@@ -83,6 +114,8 @@ def main():
     # Attempt to restore from backup if main file is missing
 
     # Set up the GUI window using ThemedTk with a selected ttk theme
+
+    check_for_updates()
 
     root = tk.Tk()
 
